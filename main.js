@@ -1,3 +1,7 @@
+#!/usr/bin/env node
+
+"use strict";
+
 const readline = require("readline");
 const fs = require("fs");
 const os = require("os");
@@ -51,6 +55,12 @@ let hostsContent;
 let records = [];
 let IPs = [];
 
+/**
+ * @function getIP
+ * 获取网站IP
+ * @param {string} host - 网站的主机名
+ * @returns {Promise<string>} - 返回网站的 IP 地址
+ */
 async function getIP(host) {
     let url = `https://acme-check.com/?domain=${host}`;
     console.log(`${appName}: Getting IP for '${host}' ( ${url} )`);
@@ -68,6 +78,12 @@ async function getIP(host) {
     }
 }
 
+/**
+ * @function checkIPv4
+ * 检查给定的字符串是否为 IPv4 地址
+ * @param {string} IP - 要检查的字符串
+ * @returns {boolean} - 如果是有效的 IPv4 地址则返回 true，否则返回 false
+ */
 function checkIPv4(IP) {
     let arr = IP.split(".");
     if (arr.length !== 4) return false;
@@ -84,6 +100,12 @@ function checkIPv4(IP) {
     return true;
 }
 
+/**
+ * @function parseHostsRecord
+ * 解析一条 HOSTS 记录
+ * @param {string} record - 一条记录
+ * @returns {object} - 解析后的数据（不带行号）
+ */
 function parseHostsRecord(record) {
     if (debug) {
         console.log(`${appName}: (debug) Parsing HOSTS record: ${record}`);
@@ -119,6 +141,12 @@ function parseHostsRecord(record) {
     };
 }
 
+/**
+ * @function getHostsRecords
+ * 解析 HOSTS 中的所有记录
+ * @param {string} content - HOSTS 的内容
+ * @returns {array} - 解析后的数据（带行号）
+ */
 function getHostsRecords(content) {
     content = content.replace(/\r\n/g, "\n").replace(/\r/g, "\n").replace(/\x00/g, "");
     let splitContent = content.split(/\r?\n/);
@@ -133,6 +161,13 @@ function getHostsRecords(content) {
     return records;
 }
 
+/**
+ * @function getHostsRecordIndexByHost
+ * 根据域名查找 HOSTS 记录，返回第一个匹配项的索引
+ * @param {array} records - 记录列表
+ * @param {string} host - 域名
+ * @returns {number} - 在记录列表中的索引
+ */
 function getHostsRecordIndexByHost(records, host) {
     for (let i = 0; i < records.length; i++) {
         if (records[i].host == host) {
@@ -142,6 +177,12 @@ function getHostsRecordIndexByHost(records, host) {
     return -1;
 }
 
+/**
+ * @function genHosts
+ * 生成 HOSTS
+ * @param {array} records - 记录列表
+ * @returns {string} - 生成的 HOSTS
+ */
 function genHosts(records) {
     let hosts = "";
     records.forEach(function (currentValue, index) {
@@ -150,6 +191,13 @@ function genHosts(records) {
     return hosts;
 }
 
+/**
+ * @function sortArrayByItemProperty
+ * 根据数组中每个对象的属性排序数组
+ * @param {array} array - 数组
+ * @param {string} prop - 属性名
+ * @returns {array} - 排序后的数组
+ */
 function sortArrayByItemProperty(array, prop) {
     for (let a = 0; a < array.length; a++) {
         for (let b = a + 1; b < array.length; b++) {
@@ -163,6 +211,12 @@ function sortArrayByItemProperty(array, prop) {
     return array;
 }
 
+/**
+ * @function getIPs
+ * 获取所有网站的 IP 地址
+ * @param {array} currentValue - 当前网站主机名
+ * @returns {Promise<void>}
+ */
 async function getIPs(currentValue) {
     let ip = await getIP(currentValue);
     IPs.push({
@@ -173,6 +227,7 @@ async function getIPs(currentValue) {
 
 console.log(`${appName}: Starting`);
 
+// 判断操作系统，选择相应的 hosts 文件路径
 const hostsPath = os.type().search("Windows") !== -1 ? "C:\\Windows\\System32\\drivers\\etc\\hosts" : "/etc/hosts";
 
 try {
