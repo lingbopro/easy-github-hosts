@@ -186,10 +186,13 @@ function getHostsRecordIndexByHost(records, host) {
 function genHosts(records) {
     let hosts = "";
     records.forEach(function (currentValue, index) {
-        hosts += `${currentValue.ip}${currentValue.ip != "" ? " " : ""}${currentValue.host}${currentValue.host != "" ? " " : ""}${currentValue.description ? "#" + currentValue.description : ""}\n`;
+        hosts += `${currentValue.ip}${currentValue.ip != "" ? " " : ""}` +
+                 `${currentValue.host}${currentValue.host != "" ? " " : ""}` +
+                 `${currentValue.description ? "#" + currentValue.description : ""}\n`;
     });
     return hosts;
 }
+
 
 /**
  * @function sortArrayByItemProperty
