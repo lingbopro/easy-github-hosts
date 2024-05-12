@@ -267,7 +267,7 @@ try {
                         })
                         .then(() => {
                             IPs = sortArrayByItemProperty(IPs, "host");
-                            newRecords = diff ? [] : JSON.parse(JSON.stringify(records));
+                            let newRecords = diff ? [] : JSON.parse(JSON.stringify(records)); // PR #1 把这玩意的定义整没了...
                             IPs.forEach(function (currentValue, index) {
                                 if (checkIPv4(currentValue.ip)) {
                                     let recordIndex = getHostsRecordIndexByHost(
@@ -287,7 +287,7 @@ try {
                                     console.log(`${appName}: This address (${currentValue.host}) may not exist, if you are sure it does not exist, please report an issue at https://github.com/lingbopro/easy-github-hosts/issues`);
                                 }
                             });
-                            newHostsContent = genHosts(newRecords);
+                            let newHostsContent = genHosts(newRecords); // PR #1 把这玩意的定义也整没了，我真就
                             if (debug || noedit) {
                                 console.debug(`${appName}: ${(debug && !noedit) ? "(debug) " : ""}${diff ? "Differences between new and old HOSTS file" : "New HOSTS file content"}:`);
                                 console.debug(`${appName}: ${(debug && !noedit) ? "(debug) " : ""}============================================================`);
