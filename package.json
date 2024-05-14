@@ -1,13 +1,13 @@
 {
   "name": "easy-github-hosts",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Easy to add IP of GitHub into your HOSTS file.",
   "main": "main.js",
   "scripts": {
     "test": "node main.js --debug",
     "start": "node main.js"
   },
-  "author": "lingbopro",
+  "author": "lingbopro,Minemetero",
   "license": "MIT",
   "keywords": [
     "github",
@@ -25,6 +25,5 @@
   "dependencies": {
     "axios": "^1.6.8",
     "cheerio": "^1.0.0-rc.12"
-  },
-  "devDependencies": {}
+  }
 }

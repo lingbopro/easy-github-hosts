@@ -32,13 +32,18 @@ npm install
 
 在克隆的文件夹内运行：
 
+确保你有执行权限：
 ```shell
-node main.js
+chmod +x main.js updateHosts.js ipFetcher.js
+```
+
+```shell
+./main.js
 ```
 
 有 3 种可选的选项，详见[选项](#选项)。  
  如果写入失败，请尝试以管理员运行（Windows），或者以超级用户权限执行（`sudo`，Linux/Mac）  
- _（PS：测试的时候只测了 `Windows`，`Linux` 不保证完全可行）_
+ _（PS：测试的时候只测了 `Windows`，`Linux` 不保证完全可行）_ _(另一位开发只测试了llnux,其他的就交给大怨种了)_
 
 ### 5. 完事！
 
@@ -51,7 +56,7 @@ node main.js
 启用调试模式（会输出更详细的信息）。
 
 ```shell
-node main.js --debug
+node updateHosts.js --debug
 ```
 
 ### --noedit
@@ -59,7 +64,7 @@ node main.js --debug
 不编辑 HOSTS 文件，只是输出增加条目后的内容。
 
 ```shell
-node main.js --noedit
+node updateHosts.js --noedit
 ```
 
 ### --diff
@@ -67,15 +72,16 @@ node main.js --noedit
 不修改文件，只输出更改了的内容（必须和 [`--noedit`](#noedit) 选项一同使用）。
 
 ```shell
-node main.js --noedit --diff
+node updateHosts.js --noedit --diff
 ```
 
 ## TODO
 
-[ ] 完善域名列表  
-[ ] 将写入 `HOSTS` 文件的代码和获取 IP 的代码分离  
+[ ] 完善域名列表   
 [ ] 使其可以用于所有这样的网站  
 [ ] 优化代码,增加可读性  
+[ ] 简化步骤，试图让用户一键配置，跑完代码  
+[ ] 对于Linux的支持  
 
 ## 开源说明
 
