@@ -33,7 +33,7 @@ npm install
 在克隆的文件夹内运行：
 
 ```shell
-node main.js
+node updateHosts.js
 ```
 
 有 3 种可选的选项，详见[选项](#选项)。  
@@ -51,7 +51,7 @@ node main.js
 启用调试模式（会输出更详细的信息）。
 
 ```shell
-node main.js --debug
+node updateHosts.js --debug
 ```
 
 ### --noedit
@@ -59,7 +59,7 @@ node main.js --debug
 不编辑 HOSTS 文件，只是输出增加条目后的内容。
 
 ```shell
-node main.js --noedit
+node updateHosts.js --noedit
 ```
 
 ### --diff
@@ -67,7 +67,7 @@ node main.js --noedit
 不修改文件，只输出更改了的内容（必须和 [`--noedit`](#noedit) 选项一同使用）。
 
 ```shell
-node main.js --noedit --diff
+node updateHosts.js --noedit --diff
 ```
 
 ## TODO
