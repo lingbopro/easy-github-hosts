@@ -137,87 +137,112 @@ const rl = readline.createInterface({
     output: process.stdout
 });
 
-console.log(`${appName}: Starting`);
+/**
+ * @function updateHosts
+ * 主函数，更新 HOSTS 文件
+ */
+function updateHosts() {
+    console.log(`${appName}: Starting`);
 
-// 判断操作系统，选择相应的 hosts 文件路径
-const hostsPath = os.type().search("Windows") !== -1 ? "C:\\Windows\\System32\\drivers\\etc\\hosts" : "/etc/hosts";
+    // 判断操作系统，选择相应的 hosts 文件路径
+    const hostsPath = os.type().search("Windows") !== -1 ? "C:\\Windows\\System32\\drivers\\etc\\hosts" : "/etc/hosts";
 
-try {
-    fs.open(hostsPath, "r+", (err, data) => {
-        if (err) {
-            console.log(`${appName}: ERROR - Error opening HOSTS file:`);
-            console.log(err);
-            console.log(`${appName}: Please try running this program as Administrator (or super user).`);
-            console.log(`${appName}: If the error occurred again, please report an issue at https://github.com/lingbopro/easy-github-hosts/issues`);
-        } else {
-            console.log(`${appName}: Success opened HOSTS file`);
-            fs.read(data, (err, bytes, data) => {
-                if (err) {
-                    console.log(`${appName}: ERROR - Error reading HOSTS file:`);
-                    console.log(err);
-                    console.log(`${appName}: Please try running this program as Administrator (or super user).`);
-                    console.log(`${appName}: If the error occurred again, please report an issue at https://github.com/lingbopro/easy-github-hosts/issues`);
-                } else {
-                    console.log(`${appName}: Success read HOSTS file (${bytes} bytes)`);
-                    hostsContent = data.toString();
-                    records = getHostsRecords(hostsContent);
-                    console.log(`${appName}: Got ${records.length} records from HOSTS file`);
-
-                    getIPs().then((IPs) => {
-                        console.log(`${appName}: IPs loaded`);
-                        IPs.forEach(function (currentValue, index) {
-                            let indexOfCurrentSite = getHostsRecordIndexByHost(records, currentValue.host);
-                            if (indexOfCurrentSite !== -1) {
-                                records[indexOfCurrentSite].ip = currentValue.ip;
-                            } else {
-                                records.push({
-                                    ip: currentValue.ip,
-                                    host: currentValue.host,
-                                    description: `${appName}: Added by ${appName}`,
-                                    line: records.length + 1,
-                                });
-                            }
-                        });
-                        records = sortArrayByItemProperty(records, "line");
-                        let newHosts = genHosts(records);
-
-                        if (diff) {
-                            console.log(`${appName}: --diff set, displaying differences:`);
-                            console.log("============================================");
-                            console.log(newHosts);
-                            console.log("============================================");
-                        } else if (!noedit) {
-                            rl.question(`${appName}: Do you want to update the HOSTS file? (yes/no): `, function(answer) {
-                                if (answer.toLowerCase() === 'yes') {
-                                    fs.writeFile(hostsPath, newHosts, (err) => {
-                                        if (err) {
-                                            console.log(`${appName}: ERROR - Error writing HOSTS file:`);
-                                            console.log(err);
-                                            console.log(`${appName}: Please try running this program as Administrator (or super user).`);
-                                            console.log(`${appName}: If the error occurred again, please report an issue at https://github.com/lingbopro/easy-github-hosts/issues`);
+    try {
+        fs.open(hostsPath, "r+", (err, data) => {
+            if (err) {
+                console.log(`${appName}: ERROR - Error opening HOSTS file:`);
+                console.log(err);
+                console.log(`${appName}: Please try running this program as Administrator (or super user).`);
+                console.log(`${appName}: If the error occurred again, please report an issue at https://github.com/lingbopro/easy-github-hosts/issues`);
+                process.exit(1);
+            } else {
+                console.log(`${appName}: Success opened HOSTS file`);
+                fs.read(data, (err, bytes, data) => {
+                    if (err) {
+                        console.log(`${appName}: ERROR - Error reading HOSTS file:`);
+                        console.log(err);
+                        console.log(`${appName}: Please try running this program as Administrator (or super user).`);
+                        console.log(`${appName}: If the error occurred again, please report an issue at https://github.com/lingbopro/easy-github-hosts/issues`);
+                        process.exit(1);
+                    } else {
+                        console.log(`${appName}: Success read HOSTS file (${bytes} bytes)`);
+                        hostsContent = data.toString();
+                        records = getHostsRecords(hostsContent);
+                        console.log(`${appName}: Got ${records.length} records from HOSTS file`);
+                        getIPs()
+                            .catch((err) => {
+                                console.log(`${appName}: ERROR - Error getting IP:`);
+                                console.log(err);
+                                console.log(`${appName}: Please make sure you have a stable internet connection, and try again.`);
+                                console.log(`${appName}: If the error occurred again, please report an issue at https://github.com/lingbopro/easy-github-hosts/issues`);
+                                process.exit(1);
+                            })
+                            .then((IPs) => {
+                                IPs = sortArrayByItemProperty(IPs, "host");
+                                let newRecords = diff ? [] : JSON.parse(JSON.stringify(records)); 
+                                IPs.forEach(function (currentValue) {
+                                    if (checkIPv4(currentValue.ip)) {
+                                        let recordIndex = getHostsRecordIndexByHost(newRecords, currentValue.host);
+                                        if (recordIndex !== -1) {
+                                            newRecords[recordIndex].ip = currentValue.ip;
                                         } else {
-                                            console.log(`${appName}: Successfully wrote to HOSTS file`);
+                                            newRecords.push({ ip: currentValue.ip, host: currentValue.host, description: "" });
                                         }
-                                        rl.close();
-                                    });
+                                    }
+                                });
+                                newRecords = sortArrayByItemProperty(newRecords, "line");
+                                const newHostsContent = genHosts(newRecords);
+                                if (noedit) {
+                                    console.log(newHostsContent);
+                                    if (diff) {
+                                        process.exit(0);
+                                    } else {
+                                        fs.writeFile(hostsPath, newHostsContent, (err) => {
+                                            if (err) {
+                                                console.log(`${appName}: ERROR - Error writing HOSTS file:`);
+                                                console.log(err);
+                                                console.log(`${appName}: Please try running this program as Administrator (or super user).`);
+                                                console.log(`${appName}: If the error occurred again, please report an issue at https://github.com/lingbopro/easy-github-hosts/issues`);
+                                                process.exit(1);
+                                            } else {
+                                                console.log(`${appName}: Successfully updated HOSTS file`);
+                                                process.exit(0);
+                                            }
+                                        });
+                                    }
                                 } else {
-                                    console.log(`${appName}: Update cancelled by user.`);
-                                    rl.close();
+                                    rl.question(`${appName}: Are you sure you want to update the hosts file? (yes/no) `, (answer) => {
+                                        if (answer.toLowerCase() === "yes") {
+                                            fs.writeFile(hostsPath, newHostsContent, (err) => {
+                                                if (err) {
+                                                    console.log(`${appName}: ERROR - Error writing HOSTS file:`);
+                                                    console.log(err);
+                                                    console.log(`${appName}: Please try running this program as Administrator (or super user).`);
+                                                    console.log(`${appName}: If the error occurred again, please report an issue at https://github.com/lingbopro/easy-github-hosts/issues`);
+                                                    process.exit(1);
+                                                } else {
+                                                    console.log(`${appName}: Successfully updated HOSTS file`);
+                                                    process.exit(0);
+                                                }
+                                            });
+                                        } else {
+                                            console.log(`${appName}: Update cancelled`);
+                                            process.exit(0);
+                                        }
+                                    });
                                 }
                             });
-                        }
-                    }).catch((err) => {
-                        console.log(`${appName}: ERROR - Error getting IPs:`);
-                        console.log(err);
-                        console.log(`${appName}: Please make sure you have a stable internet connection, and try again.`);
-                        console.log(`${appName}: If the error occurred again, please report an issue at https://github.com/lingbopro/easy-github-hosts/issues`);
-                    });
-                }
-            });
-        }
-    });
-} catch (error) {
-    console.log(`${appName}: ERROR - An unexpected error occurred:`);
-    console.error(error);
-    console.log(`${appName}: If the error occurred again, please report an issue at https://github.com/lingbopro/easy-github-hosts/issues`);
+                    }
+                });
+            }
+        });
+    } catch (err) {
+        console.log(`${appName}: ERROR - An unexpected error occurred:`);
+        console.log(err);
+        console.log(`${appName}: Please try running this program as Administrator (or super user).`);
+        console.log(`${appName}: If the error occurred again, please report an issue at https://github.com/lingbopro/easy-github-hosts/issues`);
+        process.exit(1);
+    }
 }
+
+module.exports = { updateHosts };
