@@ -56,7 +56,7 @@ chmod +x main.js updateHosts.js ipFetcher.js
 启用调试模式（会输出更详细的信息）。
 
 ```shell
-node updateHosts.js --debug
+node main.js --debug
 ```
 
 ### --noedit
@@ -64,7 +64,7 @@ node updateHosts.js --debug
 不编辑 HOSTS 文件，只是输出增加条目后的内容。
 
 ```shell
-node updateHosts.js --noedit
+node main.js --noedit
 ```
 
 ### --diff
@@ -72,7 +72,7 @@ node updateHosts.js --noedit
 不修改文件，只输出更改了的内容（必须和 [`--noedit`](#noedit) 选项一同使用）。
 
 ```shell
-node updateHosts.js --noedit --diff
+node main.js --noedit --diff
 ```
 
 ## TODO
