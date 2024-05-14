@@ -30,7 +30,7 @@ npm install
 
 ### 4. 运行
 
-在克隆的文件夹内运行：
+在克隆的文件夹内运行以下命令  
 
 确保你有执行权限：
 ```shell
@@ -40,10 +40,12 @@ chmod +x main.js updateHosts.js ipFetcher.js
 ```shell
 ./main.js
 ```
+
 或者：  
-``shell
+```shell
 node main.js
 ```
+
 
 有 3 种可选的选项，详见[选项](#选项)。  
 如果写入失败，请尝试以管理员运行（Windows），或者以超级用户权限执行（`sudo`，Linux/Mac）  
@@ -74,7 +76,7 @@ node main.js --noedit
 
 ### --diff
 
-不修改文件，只输出更改了的内容（必须和 [`--noedit`](#noedit) 选项一同使用）。
+不修改文件，只输出更改了的内容（必须和 [`--noedit`](#--noedit) 选项一同使用）。
 
 ```shell
 node main.js --noedit --diff
