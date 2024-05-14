@@ -2,10 +2,10 @@
   "name": "easy-github-hosts",
   "version": "1.2.0",
   "description": "Easy to add IP of GitHub into your HOSTS file.",
-  "main": "updateHosts.js",
+  "main": "main.js",
   "scripts": {
-    "test": "node updateHosts.js --debug",
-    "start": "node updateHosts.js"
+    "test": "node main.js --debug",
+    "start": "node main.js"
   },
   "author": "lingbopro,Minemetero",
   "license": "MIT",
