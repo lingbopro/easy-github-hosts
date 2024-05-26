@@ -34,6 +34,7 @@ npm install
 
 确保你有执行权限：
 ```shell
+#似乎这只是Linux的专属指令
 chmod +x main.js updateHosts.js ipFetcher.js
 ```
 然后运行主程序：  
@@ -46,13 +47,27 @@ chmod +x main.js updateHosts.js ipFetcher.js
 node main.js
 ```
 
-
 有 3 种可选的选项，详见[选项](#选项)。  
 如果写入失败，请尝试以管理员运行（Windows），或者以超级用户权限执行（`sudo`，Linux/Mac）  
 _（PS：测试的时候只测了 `Windows`，`Linux` 不保证完全可行）_  
-_(另一位开发只测试了Linux,其他的就交给大怨种了)_  
+_ (另一位开发只测试了Linux,其他的就交给大怨种了) _  
 
 ### 5. 完事！
+
+#### 什么？你想改回你的Hosts文件？
+~hahaha，你别想该回去了~
+
+恢复hosts文件
+
+要从备份中恢复原始的`hosts`文件，请按以下步骤操作：
+
+1. **运行恢复命令**：使用以下命令恢复您的`hosts`文件。
+
+    ```sh
+    npm run restore
+    ```
+
+2. **完成**：程序将在原始`hosts`文件恢复完成后通知您。
 
 ## 选项
 
