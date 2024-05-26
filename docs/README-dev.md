@@ -21,18 +21,18 @@ This document provides a detailed guide for developers who wish to understand, m
 
 The project has the following structure:
 
-easy-github-hosts/
-├── .github/
-│ ├── bug_report.md
-│ ├── feature_request.md
-├── docs/
-│ ├── README.md
-│ ├── README-dev.md
-├── ipFetcher.js
-├── main.js
-├── package.json
-├── restoreHosts.js
-├── updateHosts.js
+easy-github-hosts/  
+├── .github/  
+│ ├── bug_report.md  
+│ ├── feature_request.md  
+├── docs/  
+│ ├── README.md  
+│ ├── README-dev.md  
+├── ipFetcher.js  
+├── main.js  
+├── package.json  
+├── restoreHosts.js  
+├── updateHosts.js  
 
 - **.github/**: Contains the issue template files.
   - **bug_report.md**: Yes! It for bug report issue.
