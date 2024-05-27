@@ -47,11 +47,6 @@ chmod +x main.js updateHosts.js ipFetcher.js
 node main.js
 ```
 
-或者：  
-```shell
-node main.js
-```
-
 
 有 3 种可选的选项，详见[选项](#选项)。  
  如果写入失败，请尝试以管理员运行（Windows），或者以超级用户权限执行（`sudo`，Linux/Mac）  
