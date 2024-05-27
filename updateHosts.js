@@ -5,13 +5,15 @@
 const fs = require("fs");
 const os = require("os");
 const readline = require("readline");
-const path = require("path");
 const { getIPs } = require("./ipFetcher");
 
 const appName = "Easy GitHub Hosts";
 const debug = process.argv.includes("--debug");
 const noedit = process.argv.includes("--noedit");
 const diff = noedit && process.argv.includes("--diff");
+
+let hostsContent;  // 这里恢复变量声明
+let records = [];  // 这里恢复变量声明
 
 /**
  * 检查给定的字符串是否为有效的 IPv4 地址
@@ -81,9 +83,18 @@ function genHosts(records) {
  */
 function createBackup(hostsPath) {
     const backupPath = `${hostsPath}.backup`;
-    fs.copyFileSync(hostsPath, backupPath);
-    console.log(`${appName}: Created backup at ${backupPath}`);
-    return backupPath;
+    try {
+        fs.copyFileSync(hostsPath, backupPath);
+        console.log(`${appName}: Created backup at ${backupPath}`);
+        return backupPath;
+    } catch (err) {
+        if (err.code === 'EPERM') {
+            console.error(`${appName}: ERROR - Permission denied while creating backup. Please run this program as Administrator (or super user).`);
+        } else {
+            console.error(`${appName}: ERROR - Error creating backup:`, err);
+        }
+        process.exit(1);
+    }
 }
 
 /**
@@ -95,14 +106,14 @@ async function updateHosts() {
     const hostsPath = os.type().includes("Windows") ? "C:\\Windows\\System32\\drivers\\etc\\hosts" : "/etc/hosts";
 
     try {
-        const data = fs.readFileSync(hostsPath, 'utf-8');
+        hostsContent = fs.readFileSync(hostsPath, 'utf-8'); // 读取 HOSTS 文件内容
         console.log(`${appName}: Successfully read HOSTS file`);
 
-        const existingRecords = getHostsRecords(data);
-        console.log(`${appName}: Got ${existingRecords.length} records from HOSTS file`);
+        records = getHostsRecords(hostsContent); // 获取 HOSTS 记录
+        console.log(`${appName}: Got ${records.length} records from HOSTS file`);
 
         const IPs = await getIPs();
-        const newRecords = diff ? [] : [...existingRecords];
+        const newRecords = diff ? [] : [...records];
 
         IPs.forEach(ipRecord => {
             if (checkIPv4(ipRecord.ip)) {
@@ -129,8 +140,17 @@ async function updateHosts() {
             rl.question(`${appName}: Are you sure you want to update the hosts file? (yes/no) `, answer => {
                 if (answer.toLowerCase() === 'yes') {
                     createBackup(hostsPath);
-                    fs.writeFileSync(hostsPath, newHostsContent, 'utf-8');
-                    console.log(`${appName}: Successfully updated HOSTS file`);
+                    try {
+                        fs.writeFileSync(hostsPath, newHostsContent, 'utf-8');
+                        console.log(`${appName}: Successfully updated HOSTS file`);
+                    } catch (err) {
+                        if (err.code === 'EPERM') {
+                            console.error(`${appName}: ERROR - Permission denied while writing HOSTS file. Please run this program as Administrator (or super user).`);
+                        } else {
+                            console.error(`${appName}: ERROR - Error writing new HOSTS file:`, err);
+                        }
+                        process.exit(1);
+                    }
                 } else {
                     console.log(`${appName}: Update cancelled`);
                 }
@@ -138,13 +158,13 @@ async function updateHosts() {
             });
         }
     } catch (err) {
-        console.error(`${appName}: ERROR - An unexpected error occurred:`, err);
+        if (err.code === 'EPERM') {
+            console.error(`${appName}: ERROR - Permission denied while accessing HOSTS file. Please run this program as Administrator (or super user).`);
+        } else {
+            console.error(`${appName}: ERROR - An unexpected error occurred:`, err);
+        }
         process.exit(1);
     }
 }
 
 module.exports = { updateHosts };
-
-if (require.main === module) {
-    updateHosts();
-}
