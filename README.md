@@ -55,7 +55,7 @@ node main.js
 ### 5. 完事！
 
 #### 什么？你想改回你的Hosts文件？
-~hahaha，你别想该回去了~
+~hahaha，你别想改回去了~
 
 恢复hosts文件
 
