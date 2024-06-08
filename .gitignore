@@ -134,7 +134,6 @@ dist
 
 # https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
 
-.vscode
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -149,8 +148,14 @@ dist
 *.vsix
 
 
-# ####################
+#####################
 
 .idea
 .idea/*
 .DS_Store
+
+#####################
+# Things created by this program
+**/*.backup
+files/backup/*
+files/cache/*

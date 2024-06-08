@@ -5,15 +5,14 @@
 const fs = require("fs");
 const os = require("os");
 const readline = require("readline");
-const { getIPs } = require("./ipFetcher");
+const { getIPs, readCache } = require("./ipFetcher.js");
 
 const appName = "Easy GitHub Hosts";
 const debug = process.argv.includes("--debug");
 const noedit = process.argv.includes("--noedit");
 const diff = noedit && process.argv.includes("--diff");
+const nocache = process.argv.includes("--nocache");
 
-let hostsContent;  // 这里恢复变量声明
-let records = [];  // 这里恢复变量声明
 
 /**
  * 检查给定的字符串是否为有效的 IPv4 地址
@@ -47,33 +46,13 @@ function parseHostsRecord(record) {
 }
 
 /**
- * 解析 HOSTS 文件中的所有记录
- * @param {string} content - HOSTS 文件的内容
- * @returns {array} - 解析后的记录数组（带行号）
+ * 获取逐行的信息
+ * @param {string} content 内容
+ * @returns {array} 行信息
  */
-function getHostsRecords(content) {
-    return content.split(/\r?\n/)
-        .map((line, index) => ({ ...parseHostsRecord(line), line: index + 1 }))
-        .filter(record => record.ip || record.description);
-}
-
-/**
- * 根据域名查找 HOSTS 记录的索引
- * @param {array} records - 记录列表
- * @param {string} host - 域名
- * @returns {number} - 在记录列表中的索引，找不到返回 -1
- */
-function getHostsRecordIndexByHost(records, host) {
-    return records.findIndex(record => record.host === host);
-}
-
-/**
- * 生成 HOSTS 文件的内容
- * @param {array} records - 记录列表
- * @returns {string} - 生成的 HOSTS 文件内容
- */
-function genHosts(records) {
-    return records.map(record => `${record.ip} ${record.host} ${record.description ? '#' + record.description : ''}`).join('\n');
+function getLines(content) {
+    content = content.replaceAll('\r\n', '\n').replaceAll('\x00', '');
+    return content.split('\n');
 }
 
 /**
@@ -82,8 +61,13 @@ function genHosts(records) {
  * @returns {string} - 备份文件路径
  */
 function createBackup(hostsPath) {
-    const backupPath = `${hostsPath}.backup`;
+    const backupPath = path.join(__dirname, 'files/backup', `hostsfile.backup`);
     try {
+        if (!fs.existsSync(path.join(__dirname, "files/backup"))) {
+            fs.mkdirSync(path.join(__dirname, "files/backup"), {
+                recursive: true,
+            });
+        }
         fs.copyFileSync(hostsPath, backupPath);
         console.log(`${appName}: Created backup at ${backupPath}`);
         return backupPath;
@@ -96,6 +80,21 @@ function createBackup(hostsPath) {
         process.exit(1);
     }
 }
+/**
+ * 在数组中寻找第一个属性等于指定值的子项的下标，找不到返回-1
+ * @param {array} array 数组
+ * @param {string} property 属性名
+ * @param {*} find 查找的内容
+ * @returns {number} 下标
+ */
+function findByItemProperty(array, property, find) {
+    for (let i = 0; i < array.length; i++) {
+        if (array[i][property] === find) {
+            return i;
+        }
+    }
+    return -1;
+}
 
 /**
  * 主函数，更新 HOSTS 文件
@@ -106,31 +105,52 @@ async function updateHosts() {
     const hostsPath = os.type().includes("Windows") ? "C:\\Windows\\System32\\drivers\\etc\\hosts" : "/etc/hosts";
 
     try {
-        hostsContent = fs.readFileSync(hostsPath, 'utf-8'); // 读取 HOSTS 文件内容
+        let hostsContent = fs.readFileSync(hostsPath, 'utf-8'); // 读取 HOSTS 文件内容
         console.log(`${appName}: Successfully read HOSTS file`);
 
-        records = getHostsRecords(hostsContent); // 获取 HOSTS 记录
-        console.log(`${appName}: Got ${records.length} records from HOSTS file`);
+        const lines = getLines(hostsContent);
+        // records = getHostsRecords(hostsContent); // 获取 HOSTS 记录
+        // console.log(`${appName}: Got ${records.length} records from HOSTS file`);
 
-        const IPs = await getIPs();
-        const newRecords = diff ? [] : [...records];
+        let IPs = [];
+        if (!nocache) {
+            let cache = readCache();
+            if (cache === null) {
+                IPs = await getIPs();
+            }
+        }
+        else {
+            try {
+                IPs = await getIPs(!nocache);
+            }
+            catch (err) {
+                console.error(`${appName}: ERROR - Error fetching IPs:`, err);
+                process.exit(1);
+            }
+        }
+        let newHostsContent = '';
+        let availableIPs = [];
 
-        IPs.forEach(ipRecord => {
+        IPs.forEach(ipRecord => { // 检查IP
             if (checkIPv4(ipRecord.ip)) {
-                const index = getHostsRecordIndexByHost(newRecords, ipRecord.host);
-                if (index !== -1) {
-                    newRecords[index].ip = ipRecord.ip;
-                } else {
-                    newRecords.push({ ...ipRecord, description: "" });
-                }
+                availableIPs.push(ipRecord);
             }
         });
 
-        const newHostsContent = genHosts(newRecords);
+        lines.forEach(line => { // 逐行解析HOSTS
+            let parsed = parseHostsRecord(line); // 解析
+            if (findByItemProperty(availableIPs, 'host', parsed.host) == -1) {  // 如果与 GitHub 无关
+                newHostsContent += line + '\n'; // 加入
+            }
+        });
+        availableIPs.forEach((value) => { // 最后处理 GitHub
+            newHostsContent += `${value.ip} ${value.host} # Easy GitHub Hosts\n`; // 加入
+        });
 
         if (noedit) {
+            console.log(`${appName}: HOSTS Content:`)
             console.log(newHostsContent);
-            if (diff) process.exit(0);
+            if (diff) process.exit(0); // diff功能被你吃了？！
         } else {
             const rl = readline.createInterface({
                 input: process.stdin,

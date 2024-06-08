@@ -9,7 +9,7 @@
 
 ### 1. 安装 Node.js
 
-如果你没有安装 `Node.js`，请到 [Node.js 官网](//nodejs.org/en/download) 下载 Node.js。  
+如果你没有安装 `Node.js`，请到 [Node.js 官网](https://nodejs.org/en/download) 下载 Node.js。  
 PS：测试时使用的是 `Node.js v20.11.1`。
 
 ### 2. 克隆存储库
@@ -22,42 +22,40 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
 
 ### 3.安装依赖项
 
-在终端中执行：
+~~_在终端中执行：_~~
+~~_npm install_~~
 
-```shell
-npm install
-```
+**自 [v1.34.0](https://github.com/lingbopro/easy-github-hosts/releases/tag/v1.4.0) 之后，我们已经实现了0依赖项，因此不用再安装了 `:)`**  
 
 ### 4. 运行
 
 在克隆的文件夹内运行以下命令  
 
-确保你有执行权限：
-```shell
-#似乎这只是Linux的专属指令
-chmod +x main.js updateHosts.js ipFetcher.js
-```
-然后运行主程序：  
-```shell
-./main.js
-```
-
-或者：  
-```shell
-node main.js
-```
+1. 确保你有执行权限（Windows 无需执行）：
+   ```shell
+   chmod +x main.js updateHosts.js ipFetcher.js
+   ```
+2. 然后运行主程序：  
+   ```shell
+   node main.js
+   ```
+   或者（Windows 不可用）：  
+   ```shell
+   ./main.js
+   ```
 
 
-有 3 种可选的选项，详见[选项](#选项)。  
+有 4 种可选的选项，详见[选项](#选项)。  
  如果写入失败，请尝试以管理员运行（Windows），或者以超级用户权限执行（`sudo`，Linux/Mac）  
- _（PS：测试的时候只测了 `Windows`，`Linux` 不保证完全可行）_ _(另一位开发只测试了llnux,其他的就交给大怨种了)_
+ _（PS：测试的时候只测了 `Windows`，`Linux` 不保证完全可行）_
+ _（另一位开发只测试了Linux,其他的就交给大怨种了）_
 
 ### 5. 完事！
 
 #### 什么？你想改回你的Hosts文件？
-~hahaha，你别想改回去了~
+~~hahaha，你别想改回去了~~
 
-恢复hosts文件
+##### 恢复hosts文件
 
 要从备份中恢复原始的`hosts`文件，请按以下步骤操作：
 
@@ -97,11 +95,21 @@ node main.js --noedit
 node main.js --noedit --diff
 ```
 
+### --nocache
+
+不读取 IP 缓存，也不写入缓存
+
+```shell
+node main.js --nocache
+```
+
 ## TODO
 
 - [ ] 完善域名列表   
+- [ ] 增加更多的 IP 源
 - [ ] 使其可以用于所有这样的网站  
 - [ ] 优化代码,增加可读性  
+- [x] 实现0依赖项  <!-- hhh,加上即完成 -->
 - [ ] 简化步骤，试图让用户一键配置，跑完代码  
 - [ ] 对于Linux的支持  
 
@@ -112,8 +120,7 @@ node main.js --noedit --diff
 
 ## 贡献须知
 
-_~~我自己写的代码都又臭又长，还要什么贡献须知(bushi~~_  
-就一件事，用 [Prettier](//prettier.cn)  
+见 [开发指南](./docs/dev-guide.zh-CN.md#贡献)。  
 
 ## 其它
 
