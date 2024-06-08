@@ -25,7 +25,7 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
 ~~_在终端中执行：_~~
 ~~_npm install_~~
 
-**自 [v1.34.0](https://github.com/lingbopro/easy-github-hosts/releases/tag/v1.4.0) 之后，我们已经实现了0依赖项，因此不用再安装了 `:)`**  
+**自 [v1.4.0](https://github.com/lingbopro/easy-github-hosts/releases/tag/v1.4.0) 之后，我们已经实现了0依赖项，因此不用再安装了 `:)`**  
 
 ### 4. 运行
 
