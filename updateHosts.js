@@ -4,6 +4,7 @@
 
 const fs = require("fs");
 const os = require("os");
+const path = require("path");
 const readline = require("readline");
 const { getIPs, readCache } = require("./ipFetcher.js");
 
