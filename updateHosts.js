@@ -14,7 +14,6 @@ const noedit = process.argv.includes("--noedit");
 const diff = noedit && process.argv.includes("--diff");
 const nocache = process.argv.includes("--nocache");
 
-
 /**
  * 检查给定的字符串是否为有效的 IPv4 地址
  * @param {string} IP - 要检查的字符串
@@ -52,8 +51,7 @@ function parseHostsRecord(record) {
  * @returns {array} 行信息
  */
 function getLines(content) {
-    content = content.replaceAll('\r\n', '\n').replaceAll('\x00', '');
-    return content.split('\n');
+    return content.replace(/\r\n/g, '\n').replace(/\x00/g, '').split('\n');
 }
 
 /**
@@ -62,12 +60,11 @@ function getLines(content) {
  * @returns {string} - 备份文件路径
  */
 function createBackup(hostsPath) {
-    const backupPath = path.join(__dirname, 'files/backup', `hostsfile.backup`);
+    const backupPath = path.join(__dirname, 'files/backup', 'hostsfile.backup'); // 读取HOSTS文件内容
     try {
-        if (!fs.existsSync(path.join(__dirname, "files/backup"))) {
-            fs.mkdirSync(path.join(__dirname, "files/backup"), {
-                recursive: true,
-            });
+        const backupDir = path.dirname(backupPath);
+        if (!fs.existsSync(backupDir)) {
+            fs.mkdirSync(backupDir, { recursive: true });
         }
         fs.copyFileSync(hostsPath, backupPath);
         console.log(`${appName}: Created backup at ${backupPath}`);
@@ -81,6 +78,7 @@ function createBackup(hostsPath) {
         process.exit(1);
     }
 }
+
 /**
  * 在数组中寻找第一个属性等于指定值的子项的下标，找不到返回-1
  * @param {array} array 数组
@@ -89,12 +87,7 @@ function createBackup(hostsPath) {
  * @returns {number} 下标
  */
 function findByItemProperty(array, property, find) {
-    for (let i = 0; i < array.length; i++) {
-        if (array[i][property] === find) {
-            return i;
-        }
-    }
-    return -1;
+    return array.findIndex(item => item[property] === find);
 }
 
 /**
@@ -106,7 +99,7 @@ async function updateHosts() {
     const hostsPath = os.type().includes("Windows") ? "C:\\Windows\\System32\\drivers\\etc\\hosts" : "/etc/hosts";
 
     try {
-        let hostsContent = fs.readFileSync(hostsPath, 'utf-8'); // 读取 HOSTS 文件内容
+        const hostsContent = fs.readFileSync(hostsPath, 'utf-8');
         console.log(`${appName}: Successfully read HOSTS file`);
 
         const lines = getLines(hostsContent);
@@ -115,77 +108,86 @@ async function updateHosts() {
 
         let IPs = [];
         if (!nocache) {
-            let cache = readCache();
-            if (cache === null) {
-                IPs = await getIPs();
+            const cache = readCache();
+            if (cache !== null) {
+                IPs = cache;
+                console.log(`${appName}: Read IPs from cache`);
             }
         }
-        else {
-            try {
-                IPs = await getIPs(!nocache);
-            }
-            catch (err) {
-                console.error(`${appName}: ERROR - Error fetching IPs:`, err);
-                process.exit(1);
-            }
+
+        if (IPs.length === 0) {
+            IPs = await getIPs(true);
+            console.log(`${appName}: Read IPs from the internet`);
         }
-        let newHostsContent = '';
-        let availableIPs = [];
 
-        IPs.forEach(ipRecord => { // 检查IP
-            if (checkIPv4(ipRecord.ip)) {
-                availableIPs.push(ipRecord);
+        const backupPath = createBackup(hostsPath);
+
+        const records = lines.map(parseHostsRecord);
+
+        let noModify = false;
+
+        records.forEach(record => {
+            const index = findByItemProperty(IPs, 'host', record.host);
+            if (index !== -1 && IPs[index].ip && checkIPv4(IPs[index].ip)) {
+                record.ip = IPs[index].ip;
+            } else if (index !== -1) {
+                noModify = true;
             }
         });
 
-        lines.forEach(line => { // 逐行解析HOSTS
-            let parsed = parseHostsRecord(line); // 解析
-            if (findByItemProperty(availableIPs, 'host', parsed.host) == -1) {  // 如果与 GitHub 无关
-                newHostsContent += line + '\n'; // 加入
+        const newLines = records.map(record => {
+            if (record.ip) {
+                return `${record.ip} ${record.host} # ${record.description}`;
+            } else if (record.host) {
+                return `${record.host} ${record.description}`;
+            } else {
+                return `#${record.description}`;
             }
         });
-        availableIPs.forEach((value) => { // 最后处理 GitHub
-            newHostsContent += `${value.ip} ${value.host} # Easy GitHub Hosts\n`; // 加入
-        });
 
-        if (noedit) {
-            console.log(`${appName}: HOSTS Content:`)
-            console.log(newHostsContent);
-            if (diff) process.exit(0); // diff功能被你吃了？！
-        } else {
-            const rl = readline.createInterface({
-                input: process.stdin,
-                output: process.stdout
-            });
+        const newContent = newLines.join(os.EOL);
 
-            rl.question(`${appName}: Are you sure you want to update the hosts file? (yes/no) `, answer => {
-                if (answer.toLowerCase() === 'yes') {
-                    createBackup(hostsPath);
-                    try {
-                        fs.writeFileSync(hostsPath, newHostsContent, 'utf-8');
-                        console.log(`${appName}: Successfully updated HOSTS file`);
-                    } catch (err) {
-                        if (err.code === 'EPERM') {
-                            console.error(`${appName}: ERROR - Permission denied while writing HOSTS file. Please run this program as Administrator (or super user).`);
-                        } else {
-                            console.error(`${appName}: ERROR - Error writing new HOSTS file:`, err);
-                        }
-                        process.exit(1);
+        if (noedit || noModify) {
+            if (diff) {
+                console.log(`${appName}: Showing diff`);
+                const rl = readline.createInterface({
+                    input: fs.createReadStream(hostsPath),
+                    output: process.stdout,
+                    terminal: false
+                });
+
+                rl.on('line', (line) => {
+                    if (!newContent.includes(line)) {
+                        console.log(`- ${line}`);
                     }
-                } else {
-                    console.log(`${appName}: Update cancelled`);
-                }
-                rl.close();
-            });
-        }
-    } catch (err) {
-        if (err.code === 'EPERM') {
-            console.error(`${appName}: ERROR - Permission denied while accessing HOSTS file. Please run this program as Administrator (or super user).`);
+                });
+
+                rl.on('close', () => {
+                    newLines.forEach(line => {
+                        if (!hostsContent.includes(line)) {
+                            console.log(`+ ${line}`);
+                        }
+                    });
+                });
+            } else {
+                console.log(`${appName}: Update is ready but will not be performed`);
+            }
         } else {
-            console.error(`${appName}: ERROR - An unexpected error occurred:`, err);
+            fs.writeFileSync(hostsPath, newContent, 'utf-8');
+            console.log(`${appName}: HOSTS file updated successfully`);
+        }
+    } catch (error) {
+        if (error.code === 'EPERM') {
+            console.error(`${appName}: ERROR - Permission denied. Please run this program as Administrator (or super user).`);
+        } else {
+            console.error(`${appName}: ERROR - An error occurred:`, error);
         }
         process.exit(1);
     }
 }
 
 module.exports = { updateHosts };
+
+if (require.main === module) {
+    updateHosts();
+}

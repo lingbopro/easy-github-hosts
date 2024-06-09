@@ -67,8 +67,8 @@ This file contains the logic to fetch IP addresses for a list of GitHub-related 
 `cacheIPs(IPs)`: Caches given IP addresses to a file.  
 `readCache()`: Reads cached IP addresses.  
 
-
 ### updateHosts.js  
+
 This file contains the logic to update the hosts file:  
 
 `checkIPv4(IP)`: Checks if a string is a valid IPv4 address.  
@@ -79,14 +79,17 @@ This file contains the logic to update the hosts file:
 `findByItemProperty(array, property, find)`: Finds first item that property `property` equals to `find` in `array`.  
 
 ### restoreHosts.js  
+
 This file contains the logic to restore the original hosts file from a backup:  
 
 `restoreHosts()`: Main function to restore the hosts file from a backup.  
 
 ### main.js  
+
 This file serves as the entry point for the program. It imports and runs the updateHosts function from updateHosts.js.
 
 ## Contributing
+
 Contributions are welcome! Please follow these guidelines:  
 
 Fork the repository.  

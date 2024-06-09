@@ -25,7 +25,7 @@ easy-github-hosts/
 │   └── feature_request.md  
 ├── docs/  
 │   ├── CONTRIBUTING.en-US.md  
-│   ├── dev-guide.en-US.md    
+│   ├── dev-guide.en-US.md  
 │   └── dev-guide.zh-CN.md  
 ├── files/  
 │   ├── backup/  
@@ -68,6 +68,7 @@ easy-github-hosts/
 `readCache()`: 读取缓存的 IP 地址。  
 
 ### updateHosts.js
+
 此文件包含更新 hosts 文件的逻辑：  
 
 `checkIPv4(IP)`: 检查字符串是否为有效的 IPv4 地址。  
@@ -78,14 +79,17 @@ easy-github-hosts/
 `findByItemProperty(array, property, find)`: 在 `array` 中查找第一个属性 `property` 等于 `find` 的项。  
 
 ### restoreHosts.js
+
 此文件包含从备份还原原始 hosts 文件的逻辑：  
 
 `restoreHosts()`: 还原 hosts 文件的主函数，从备份中还原。  
 
 ### main.js
+
 此文件充当程序的入口点。它导入并运行 updateHosts.js 中的 updateHosts 函数。  
 
 ## 贡献
+
 欢迎您的贡献！请遵循以下指南：
 
 Fork 存储库。  
