@@ -72,6 +72,42 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
 
 2. **完成**：程序将在原始`hosts`文件恢复完成后通知您。
 
+<!--## 选项
+
+可以在运行时在命令中增加可选的选项（见下）
+
+### --debug
+
+启用调试模式（会输出更详细的信息）。
+
+```shell
+node main.js --debug
+```
+
+### --noedit
+
+不编辑 HOSTS 文件，只是输出增加条目后的内容。
+
+```shell
+node main.js --noedit
+```
+
+### --diff
+
+不修改文件，只输出更改了的内容（必须和 [`--noedit`](#--noedit) 选项一同使用）。
+
+```shell
+node main.js --noedit --diff
+```
+
+### --nocache
+
+不读取 IP 缓存，也不写入缓存
+
+```shell
+node main.js --nocache
+```-->
+
 ## TODO
 
 - [ ] 完善域名列表  
