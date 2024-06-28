@@ -38,31 +38,32 @@ const sites = [
  * @returns {Promise<string>} - 返回网站的 IP 地址
  */
 async function getIP(host) {
-    const url = `http://ip-api.com/json/${host}?fields=status,message,query`;
+    let url = `http://ip-api.com/json/${host}?fields=status,message,query`;
     console.log(`${appName}: Getting IP for '${host}' ( ${url} )`);
     try {
         const response = await fetch(url, { method: 'GET' });
         if (response.ok) {
             const data = await response.json();
-            if (data.status === 'success') {
+            if (data.status == 'success') {
                 const ip = data.query;
                 console.log(`${appName}: Got IP for '${host}' : ${ip}`);
                 return ip;
             } else {
-                console.error(`${appName}: ERROR - API returned an error message:\n${data.message}`);
+                console.log(`${appName}: ERROR - API returned an error message:\n${data.message}`);
                 return "";
             }
         } else {
             if (response.headers['X-R1'] <= 0) {
-                console.error(`${appName}: ERROR - The API call limit is reached`);
-                console.error(`${appName}: ERROR - Try again in at least ${response.headers['X-Ttl']} seconds`);
+                console.log(`${appName}: ERROR - The API call limit is reached`);
+                console.log(`${appName}: ERROR - Try again in at least ${response.headers['X-Ttl']} seconds`);
                 throw new Error('API call limit reached');
             }
-            console.error(`${appName}: ERROR - returned an HTTP error code:\n${response.status} (${response.statusText})`);
+            console.log(`${appName}: ERROR - returned an HTTP error code:\n${response.status} (${response.statusText})`);
             return "";
         }
     } catch (error) {
-        console.error(`${appName}: ERROR - An error occurred while getting IP for '${host}' :`, error);
+        console.log(`${appName}: ERROR - An error occurred while getting IP for '${host}' :`);
+        console.error(error);
         return "";
     }
 }
@@ -74,19 +75,19 @@ async function getIP(host) {
  * @returns {Promise<Array>} - 返回包含所有网站 IP 地址的数组
  */
 async function getIPs(cache = true) {
-    const promises = sites.map(async (site) => {
+    let promises = sites.map(async (site) => {
         try {
-            const ip = await getIP(site);
+            let ip = await getIP(site);
             return { host: site, ip: ip };
         } catch (err) {
-            if (err.message === 'API call limit reached') {
+            if (err.message == 'API call limit reached') {
                 process.exit(1);
             } else {
                 throw err;
             }
         }
     });
-    const IPs = await Promise.all(promises);
+    let IPs = await Promise.all(promises);
 
     if (cache) {
         cacheIPs(IPs);
@@ -103,19 +104,18 @@ async function getIPs(cache = true) {
  */
 function cacheIPs(IPs) {
     console.log(`${appName}: Caching IPs...`);
-    const now = Date.now();
-    const cache = { time: now, IPs: IPs };
-    const json = JSON.stringify(cache);
-
+    let now = Date.now();
+    let cache = { time: now, IPs: IPs };
+    let json = JSON.stringify(cache);
     try {
-        const cacheDir = path.join(__dirname, "files/cache");
-        if (!fs.existsSync(cacheDir)) {
-            fs.mkdirSync(cacheDir, { recursive: true });
+        if (!fs.existsSync(path.join(__dirname, "files/cache"))) {
+            fs.mkdirSync(path.join(__dirname, "files/cache"), { recursive: true });
         }
-        fs.writeFileSync(path.join(cacheDir, "cache.json"), json);
+        fs.writeFileSync(path.join(__dirname, "files/cache/cache.json"), json);
         console.info(`${appName}: Successfully cached IPs`);
     } catch (error) {
-        console.error(`${appName}: ERROR - An error occurred while caching IPs :`, error);
+        console.error(`${appName}: ERROR - An error occurred while caching IPs :`);
+        console.error(error);
     }
 }
 
@@ -126,28 +126,42 @@ function cacheIPs(IPs) {
  */
 function readCache() {
     try {
-        const cachePath = path.join(__dirname, "files/cache/cache.json");
-        if (fs.existsSync(cachePath)) {
-            const data = fs.readFileSync(cachePath);
-            const cache = JSON.parse(data);
-            const now = Date.now();
-            if (now - cache.time < 60 * 60 * 3) { // 保留3小时内的缓存
-                const isValidCache = cache.IPs.every(record => typeof record.host === "string" && typeof record.ip === "string");
-                if (isValidCache) {
+        if (fs.existsSync(path.join(__dirname, "files/cache/cache.json"))) {
+            let data = fs.readFileSync(path.join(__dirname, "files/cache/cache.json"));
+            let cache = JSON.parse(data);
+            let now = Date.now();
+            if (now - cache.time < 60 * 60 * 3) {
+                let flag = true;
+                for (let record of cache.IPs) {
+                    if (!(typeof record.host === "string" && typeof record.ip === "string")) {
+                        flag = false;
+                        break;
+                    }
+                }
+                if (flag) {
                     return cache.IPs;
                 } else {
                     console.info(`${appName}: cache file corrupted, ignore it`);
+                    return null;
                 }
             } else {
                 console.info(`${appName}: cache file expired, ignore it`);
+                return null;
             }
         } else {
             console.info(`${appName}: cache file not exist, ignore it`);
+            return null;
         }
     } catch (error) {
-        console.error(`${appName}: ERROR - An error occurred while reading cache:`, error);
+        console.error(`${appName}: ERROR - An error occurred while reading cache:`);
+        console.error(error);
+        return null;
     }
-    return null;
+}
+
+function checkIPv4(IP) {
+    const parts = IP.split(".");
+    return parts.length === 4 && parts.every(part => !isNaN(part) && Number(part) >= 0 && Number(part) <= 255);
 }
 
 module.exports = { getIPs, readCache };

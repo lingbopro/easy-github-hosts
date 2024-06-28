@@ -72,7 +72,7 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
 
 2. **完成**：程序将在原始`hosts`文件恢复完成后通知您。
 
-## 选项
+<!--## 选项
 
 可以在运行时在命令中增加可选的选项（见下）
 
@@ -106,7 +106,7 @@ node main.js --noedit --diff
 
 ```shell
 node main.js --nocache
-```
+```-->
 
 ## TODO
 

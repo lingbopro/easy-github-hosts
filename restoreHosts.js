@@ -15,7 +15,7 @@ function restoreHosts() {
     console.log(`${appName}: Starting restoration`);
     // 之前为什么要用hosts路径作为文件名呢... 嗨嗨嗨，你问我？
     const hostsPath = os.type().includes("Windows") ? "C:\\Windows\\System32\\drivers\\etc\\hosts" : "/etc/hosts";
-    const backupPath = path.join(__dirname, 'files/backup', 'hostsfile.backup');
+    const backupPath = path.join(__dirname, 'files/backup', `hostsfile.backup`);
 
     if (!fs.existsSync(backupPath)) {
         console.error(`${appName}: ERROR - Backup file not found: ${backupPath}`);
