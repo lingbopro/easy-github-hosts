@@ -2,11 +2,11 @@
 
 "use strict";
 
+const { getIPs, readCache } = require("./ipFetcher.js");
 const fs = require("fs");
 const os = require("os");
 const path = require("path");
 const readline = require("readline");
-const { getIPs, readCache } = require("./ipFetcher.js");
 
 const appName = "Easy GitHub Hosts";
 const debug = process.argv.includes("--debug");
@@ -34,15 +34,19 @@ function parseHostsRecord(record) {
         console.log(`${appName}: (debug) Parsing HOSTS record: ${record}`);
     }
     if (record.startsWith("#")) {
-        return { ip: "", host: "", description: record.slice(1).trim() };
+        // 处理注释行
+        return { type: "comment", value: record };
     }
 
     const parts = record.split(/\s+/);
-    if (parts.length < 2) {
-        return { ip: "", host: "", description: record.trim() };
-    }
+    const ip = parts[0];
+    const hosts = parts.slice(1);
 
-    return { ip: parts[0], host: parts[1], description: parts.slice(2).join(' ').replace(/^#/, '').trim() };
+    if (checkIPv4(ip)) {
+        return { type: "record", ip, hosts };
+    } else {
+        return { type: "invalid", value: record };
+    }
 }
 
 /**
@@ -101,15 +105,17 @@ function findByItemProperty(array, property, find) {
 async function updateHosts() {
     console.log(`${appName}: Starting`);
 
-    const hostsPath = os.type().includes("Windows") ? "C:\\Windows\\System32\\drivers\\etc\\hosts" : "/etc/hosts";
+    // 获取 Windows 目录路径，如果没有设置 WINDIR 环境变量，则使用默认路径 "C:\\Windows"
+    const windowsDir = process.env.WINDIR || "C:\\Windows";
+    const hostsPath = os.type().includes("Windows") ? path.join(windowsDir, "System32", "drivers", "etc", "hosts") : "/etc/hosts";
 
     try {
         let hostsContent = fs.readFileSync(hostsPath, 'utf-8');
         console.log(`${appName}: Successfully read HOSTS file`);
 
         const lines = getLines(hostsContent);
+        
         // records = getHostsRecords(hostsContent); // 获取 HOSTS 记录
-        // console.log(`${appName}: Got ${records.length} records from HOSTS file`);
 
         let IPs = [];
         if (!nocache) {
@@ -189,7 +195,7 @@ async function updateHosts() {
     }
 }
 
-module.exports = { updateHosts };
+module.exports = { checkIPv4, parseHostsRecord, updateHosts };
 
 if (require.main === module) {
     updateHosts();
