@@ -40,7 +40,7 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
 2. 然后运行主程序：  
 
    ```shell
-   node main.js --update
+   node main.js update
    ```
 
    或者（Windows 不可用）：  
@@ -67,7 +67,7 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
 1. **运行恢复命令**：使用以下命令恢复您的`hosts`文件。
 
     ```sh
-    node main.js --restore
+    node main.js restore
     ```
 
 2. **完成**：程序将在原始`hosts`文件恢复完成后通知您。
@@ -76,7 +76,7 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
 
 可以在运行时在命令中增加可选的选项（见下）
 
-### --debug
+### debug
 
 启用调试模式（会输出更详细的信息）。
 
