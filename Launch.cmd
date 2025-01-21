@@ -1,14 +1,23 @@
 @echo off
 cls
 title Easy GitHub Hosts Launcher
+
+:: Check for administrator privileges
+net session >nul 2>&1
+if %errorLevel% neq 0 (
+    echo Requesting administrative privileges...
+    powershell -Command "Start-Process '%~f0' -Verb RunAs"
+    exit /b
+)
+
 echo.
 echo Welcome to Easy GitHub Hosts Launcher
 echo Version 1.0
 echo.
-echo Running on dictionary: %cd%
-echo Changing directory to local dictionary...
-cd %~dp0
-echo Now running on dictionary: %cd%
+echo Running on directory: %cd%
+echo Changing directory to local directory...
+cd /d %~dp0
+echo Now running on directory: %cd%
 if exist main.js ( goto Select ) else ( goto scriptnotfound )
 :scriptnotfound
 echo.
