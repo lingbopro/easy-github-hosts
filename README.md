@@ -31,7 +31,7 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
 
 #### Windows
 
-    此部分内容为小白向，大佬只用看第一个
+<!-- 此部分内容为小白向，大佬只用看第一个 (咋们不需要写这个) -->
 
 1. 在克隆的文件夹双击运行 `Launch.cmd`。
 
@@ -61,32 +61,9 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
 
 #### Linux
 
-参照 [旧版提示](#旧版提示)。
+1. 在克隆的文件夹双击运行 `launch.sh`。
 
-#### 旧版指示
-
-在克隆的文件夹内运行以下命令  
-
-1. 确保你有执行权限（Windows 无需执行）：
-
-   ```shell
-   chmod +x main.js updateHosts.js ipFetcher.js
-   ```
-
-2. 然后运行主程序：  
-
-   ```shell
-   node main.js update
-   ```
-
-   或者（Windows 不可用）：  
-
-   ```shell
-   ./main.js
-   ```
-
-有 4 种可选的选项，详见[选项](#选项)。  
- 如果写入失败，请尝试以管理员运行（Windows），或者以超级用户权限执行（`sudo`，Linux/Mac）  
+2. erm 能到这一步的都会linux基础知识吧。。。
 
 ### 5. 完事
 
