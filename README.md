@@ -31,6 +31,9 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
 
 #### Windows
 
+!! note
+    此部分内容为小白向，大佬只用看第一个
+
 1. 在克隆的文件夹双击运行 `Launch.cmd`。
 
 2. 应用程序会请求管理员权限。如果弹出了对话框，请单击 "是"。这个权限用于更改 `HOSTS` 文件。
