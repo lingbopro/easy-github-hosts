@@ -31,7 +31,7 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
 
 #### Windows
 
-     此部分内容为小白向，大佬只用看第一个
+    此部分内容为小白向，大佬只用看第一个
 
 1. 在克隆的文件夹双击运行 `Launch.cmd`。
 
