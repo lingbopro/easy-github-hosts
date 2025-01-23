@@ -5,6 +5,7 @@
   "author": "lingbopro,Minemetero",
   "license": "MIT",
   "main": "main.js",
+  "type": "module",
   "scripts": {
     "start": "node main.js --update",
     "restore": "node main.js --restore"

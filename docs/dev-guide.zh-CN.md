@@ -30,7 +30,7 @@ easy-github-hosts/
 ├── files/  
 │   ├── backup/  
 │   └── cache/  
-├── easy-github-hosts/  
+├── src/  
 │   ├── main.js  
 │   ├── ipFetcher.js  
 │   ├── updateHosts.js  
@@ -51,7 +51,7 @@ easy-github-hosts/
 - `files/`: 包含此程序生成的文件。  
   - `backup/`: 包含 HOSTS 文件的备份。  
   - `cache/`: 包含 IP 缓存。  
-- `easy-github-hosts/`: 主程序文件。
+- `src/`: 主程序文件。
   - `ipFetcher.js`: 包含从 GitHub 相关域获取 IP 地址的函数。  
   - `main.js`: 该程序的主入口点。  
   - `package.json`: 管理项目依赖项和脚本。  

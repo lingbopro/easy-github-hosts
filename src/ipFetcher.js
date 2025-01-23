@@ -2,7 +2,7 @@
 
 import fs from "fs";
 import path from "path";
-import fetch from "node-fetch"; 
+import https from "https";
 import { fileURLToPath } from "url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -34,37 +34,53 @@ const sites = [
 ];
 
 /**
+ * Makes an HTTPS request and returns the response as JSON.
+ * @param {string} url - The URL to fetch.
+ * @returns {Promise<Object>} - The JSON response.
+ */
+function httpsGet(url) {
+    return new Promise((resolve, reject) => {
+        https.get(url, (res) => {
+            let data = "";
+
+            res.on("data", (chunk) => {
+                data += chunk;
+            });
+
+            res.on("end", () => {
+                try {
+                    resolve(JSON.parse(data));
+                } catch (error) {
+                    reject(new Error("Failed to parse response JSON."));
+                }
+            });
+        }).on("error", (err) => {
+            reject(err);
+        });
+    });
+}
+
+/**
  * @function getIP
  * 获取网站IP
  * @param {string} host - 网站的主机名
  * @returns {Promise<string>} - 返回网站的 IP 地址
  */
 export async function getIP(host) {
-    const url = `http://ip-api.com/json/${host}?fields=status,message,query`;
+    const url = `https://ip-api.com/json/${host}?fields=status,message,query`;
     console.log(`${appName}: Getting IP for '${host}' ( ${url} )`);
     try {
-        const response = await fetch(url, { method: "GET" });
-        if (response.ok) {
-            const data = await response.json();
-            if (data.status === "success") {
-                const ip = data.query;
-                console.log(`${appName}: Got IP for '${host}' : ${ip}`);
-                return ip;
-            } else {
-                console.log(`${appName}: ERROR - API returned an error message: ${data.message}`);
-                return "";
-            }
+        const data = await httpsGet(url);
+        if (data.status === "success") {
+            const ip = data.query;
+            console.log(`${appName}: Got IP for '${host}' : ${ip}`);
+            return ip;
         } else {
-            if (response.headers["X-R1"] <= 0) {
-                console.log(`${appName}: ERROR - API call limit reached`);
-                console.log(`${appName}: ERROR - Retry after ${response.headers["X-Ttl"]} seconds`);
-                throw new Error("API call limit reached");
-            }
-            console.log(`${appName}: ERROR - HTTP error code: ${response.status} (${response.statusText})`);
+            console.log(`${appName}: ERROR - API returned an error message: ${data.message}`);
             return "";
         }
     } catch (error) {
-        console.log(`${appName}: ERROR - Failed to get IP for '${host}':`);
+        console.log(`${appName}: ERROR - An error occurred while getting IP for '${host}':`);
         console.error(error);
         return "";
     }
