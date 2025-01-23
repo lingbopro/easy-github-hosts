@@ -157,5 +157,6 @@ dist
 #####################
 # Things created by this program
 **/*.backup
-files/backup/*
-files/cache/*
+src/files/backup/*
+src/files/cache/*
+src/files/**

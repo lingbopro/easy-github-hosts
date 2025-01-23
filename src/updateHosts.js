@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
-"use strict";
+import fs from "fs";
+import os from "os";
+import path from "path";
+import readline from "readline";
+import { fileURLToPath } from "url";
+import { getIPs, readCache, checkIPv4 } from "./ipFetcher.js";
 
-const fs = require("fs");
-const os = require("os");
-const path = require("path");
-const readline = require("readline");
-const { getIPs, readCache } = require("./ipFetcher.js");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const appName = "Easy GitHub Hosts";
 const debug = process.argv.includes("--debug");
@@ -15,34 +17,27 @@ const diff = noedit && process.argv.includes("--diff");
 const nocache = process.argv.includes("--nocache");
 
 /**
- * 检查给定的字符串是否为有效的 IPv4 地址
- * @param {string} IP - 要检查的字符串
- * @returns {boolean} - 如果是有效的 IPv4 地址则返回 true，否则返回 false
- */
-function checkIPv4(IP) {
-    const parts = IP.split(".");
-    return parts.length === 4 && parts.every(part => !isNaN(part) && Number(part) >= 0 && Number(part) <= 255);
-}
-
-/**
  * 解析一条 HOSTS 记录
  * @param {string} record - 一条记录
- * @returns {object} - 解析后的数据（不带行号）
+ * @returns {object} - 解析后的数据（不带行号）.
  */
 function parseHostsRecord(record) {
     if (debug) {
         console.log(`${appName}: (debug) Parsing HOSTS record: ${record}`);
     }
     if (record.startsWith("#")) {
-        return { ip: "", host: "", description: record.slice(1).trim() };
+        return { type: "comment", value: record };
     }
 
     const parts = record.split(/\s+/);
-    if (parts.length < 2) {
-        return { ip: "", host: "", description: record.trim() };
-    }
+    const ip = parts[0];
+    const hosts = parts.slice(1);
 
-    return { ip: parts[0], host: parts[1], description: parts.slice(2).join(' ').replace(/^#/, '').trim() };
+    if (checkIPv4(ip)) {
+        return { type: "record", ip, hosts };
+    } else {
+        return { type: "invalid", value: record };
+    }
 }
 
 /**
@@ -80,70 +75,41 @@ function createBackup(hostsPath) {
 }
 
 /**
- * 在数组中寻找第一个属性等于指定值的子项的下标，找不到返回-1
- * @param {array} array 数组
- * @param {string} property 属性名
- * @param {*} find 查找的内容
- * @returns {number} 下标
+ * Updates the HOSTS file.
  */
-function findByItemProperty(array, property, find) {
-    for (let i = 0; i < array.length; i++) {
-        if (array[i][property] === find) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-/**
- * 主函数，更新 HOSTS 文件
- */
-async function updateHosts() {
+export async function updateHosts() {
     console.log(`${appName}: Starting`);
 
-    const hostsPath = os.type().includes("Windows") ? "C:\\Windows\\System32\\drivers\\etc\\hosts" : "/etc/hosts";
+    const windowsDir = process.env.WINDIR || "C:\\Windows";
+    const hostsPath = os.type().includes("Windows")
+        ? path.join(windowsDir, "System32", "drivers", "etc", "hosts")
+        : "/etc/hosts";
 
     try {
         let hostsContent = fs.readFileSync(hostsPath, 'utf-8');
         console.log(`${appName}: Successfully read HOSTS file`);
 
         const lines = getLines(hostsContent);
-        // records = getHostsRecords(hostsContent); // 获取 HOSTS 记录
-        // console.log(`${appName}: Got ${records.length} records from HOSTS file`);
 
         let IPs = [];
         if (!nocache) {
-            let cache = readCache();
-            if (cache === null) {
-                IPs = await getIPs();
-            } else {
-                IPs = cache;
-            }
+            const cache = readCache();
+            IPs = cache ? cache : await getIPs();
         } else {
-            try {
-                IPs = await getIPs(!nocache);
-            } catch (err) {
-                console.error(`${appName}: ERROR - Error fetching IPs:`, err);
-                process.exit(1);
-        }
+            IPs = await getIPs();
         }
 
         if (IPs.length === 0) {
-            IPs = await getIPs(true);
-            console.log(`${appName}: Read IPs from the internet`);
-            }
-
-        if (IPs.length === 0) {
-            IPs = await getIPs(true);
-            console.log(`${appName}: Read IPs from the internet`);
+            console.error(`${appName}: No IPs found to update HOSTS file.`);
+            process.exit(1);
         }
 
         let newHostsContent = '';
-        let availableIPs = IPs.filter(ipRecord => checkIPv4(ipRecord.ip));
+        const availableIPs = IPs.filter(ipRecord => checkIPv4(ipRecord.ip));
 
         lines.forEach(line => {
-            let parsed = parseHostsRecord(line);
-            if (findByItemProperty(availableIPs, 'host', parsed.host) === -1) {
+            const parsed = parseHostsRecord(line);
+            if (!availableIPs.some(record => record.host === parsed.host)) {
                 newHostsContent += line + '\n';
             }
         });
@@ -162,7 +128,7 @@ async function updateHosts() {
                 output: process.stdout
             });
 
-            rl.question(`${appName}: Are you sure you want to update the hosts file? (yes/no) `, answer => {
+            rl.question(`${appName}: Are you sure you want to update the HOSTS file? (yes/no) `, answer => {
                 if (answer.toLowerCase() === 'yes') {
                     createBackup(hostsPath);
                     try {
@@ -189,8 +155,6 @@ async function updateHosts() {
     }
 }
 
-module.exports = { updateHosts };
-
-if (require.main === module) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
     updateHosts();
 }
