@@ -67,6 +67,8 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
 
 ### 5. 完事
 
+<!--- 恢复也在脚本里，删了删了
+
 #### 什么？你想改回你的Hosts文件？
 
 ~~hahaha，你别想改回去了~~
@@ -82,6 +84,8 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
     ```
 
 2. **完成**：程序将在原始`hosts`文件恢复完成后通知您。
+
+--->
 
 <!--## 选项
 
