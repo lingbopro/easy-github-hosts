@@ -61,7 +61,7 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
 
 #### Linux
 
-参照 #### 旧版提示。
+参照 [旧版提示](#旧版提示)。
 
 #### 旧版指示
 
