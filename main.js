@@ -1,9 +1,7 @@
 #!/usr/bin/env node
 
-"use strict";
-
-const { updateHosts } = require("./updateHosts.js");
-const { restoreHosts } = require("./restoreHosts.js");
+import { updateHosts } from "./updateHosts.js";
+import { restoreHosts } from "./restoreHosts.js";
 
 const appName = "Easy GitHub Hosts";
 
@@ -13,7 +11,7 @@ const appName = "Easy GitHub Hosts";
 function main() {
     let argv = process.argv.slice(2);
 
-    // 过滤掉 Node.js 特定的标志
+    // Filter out Node.js specific flags 必须搞回来 >:)
     argv = argv.filter(arg => !arg.startsWith('--inspect') && !arg.startsWith('--inspect-brk'));
 
     // 如果没有提供任何参数，输出错误信息和使用说明
@@ -49,5 +47,5 @@ function main() {
     }
 }
 
-// 执行主函数
+// Execute the main function
 main();

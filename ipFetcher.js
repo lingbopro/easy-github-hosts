@@ -1,9 +1,12 @@
 #!/usr/bin/env node
 
-"use strict";
+import fs from "fs";
+import path from "path";
+import fetch from "node-fetch"; 
+import { fileURLToPath } from "url";
 
-const fs = require("fs");
-const path = require("path");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const appName = "Easy GitHub Hosts";
 const sites = [
@@ -28,7 +31,6 @@ const sites = [
     "raw.github.com",
     "raw.githubusercontent.com",
     "user-images.githubusercontent.com",
-    // Add other sites here
 ];
 
 /**
@@ -37,32 +39,32 @@ const sites = [
  * @param {string} host - 网站的主机名
  * @returns {Promise<string>} - 返回网站的 IP 地址
  */
-async function getIP(host) {
-    let url = `http://ip-api.com/json/${host}?fields=status,message,query`;
+export async function getIP(host) {
+    const url = `http://ip-api.com/json/${host}?fields=status,message,query`;
     console.log(`${appName}: Getting IP for '${host}' ( ${url} )`);
     try {
-        const response = await fetch(url, { method: 'GET' });
+        const response = await fetch(url, { method: "GET" });
         if (response.ok) {
             const data = await response.json();
-            if (data.status == 'success') {
+            if (data.status === "success") {
                 const ip = data.query;
                 console.log(`${appName}: Got IP for '${host}' : ${ip}`);
                 return ip;
             } else {
-                console.log(`${appName}: ERROR - API returned an error message:\n${data.message}`);
+                console.log(`${appName}: ERROR - API returned an error message: ${data.message}`);
                 return "";
             }
         } else {
-            if (response.headers['X-R1'] <= 0) {
-                console.log(`${appName}: ERROR - The API call limit is reached`);
-                console.log(`${appName}: ERROR - Try again in at least ${response.headers['X-Ttl']} seconds`);
-                throw new Error('API call limit reached');
+            if (response.headers["X-R1"] <= 0) {
+                console.log(`${appName}: ERROR - API call limit reached`);
+                console.log(`${appName}: ERROR - Retry after ${response.headers["X-Ttl"]} seconds`);
+                throw new Error("API call limit reached");
             }
-            console.log(`${appName}: ERROR - returned an HTTP error code:\n${response.status} (${response.statusText})`);
+            console.log(`${appName}: ERROR - HTTP error code: ${response.status} (${response.statusText})`);
             return "";
         }
     } catch (error) {
-        console.log(`${appName}: ERROR - An error occurred while getting IP for '${host}' :`);
+        console.log(`${appName}: ERROR - Failed to get IP for '${host}':`);
         console.error(error);
         return "";
     }
@@ -74,25 +76,25 @@ async function getIP(host) {
  * @param {Boolean} cache - 是否缓存IP列表
  * @returns {Promise<Array>} - 返回包含所有网站 IP 地址的数组
  */
-async function getIPs(cache = true) {
-    let promises = sites.map(async (site) => {
+export async function getIPs(cache = true) {
+    const promises = sites.map(async (site) => {
         try {
-            let ip = await getIP(site);
-            return { host: site, ip: ip };
+            const ip = await getIP(site);
+            return { host: site, ip };
         } catch (err) {
-            if (err.message == 'API call limit reached') {
+            if (err.message === "API call limit reached") {
                 process.exit(1);
             } else {
                 throw err;
             }
         }
     });
-    let IPs = await Promise.all(promises);
+    const IPs = await Promise.all(promises);
 
     if (cache) {
         cacheIPs(IPs);
     } else {
-        console.info(`${appName}: will not cache IPs`);
+        console.info(`${appName}: Skipping IP caching`);
     }
     return IPs;
 }
@@ -104,17 +106,18 @@ async function getIPs(cache = true) {
  */
 function cacheIPs(IPs) {
     console.log(`${appName}: Caching IPs...`);
-    let now = Date.now();
-    let cache = { time: now, IPs: IPs };
-    let json = JSON.stringify(cache);
+    const now = Date.now();
+    const cache = { time: now, IPs };
+    const json = JSON.stringify(cache);
     try {
-        if (!fs.existsSync(path.join(__dirname, "files/cache"))) {
-            fs.mkdirSync(path.join(__dirname, "files/cache"), { recursive: true });
+        const cacheDir = path.join(__dirname, "files/cache");
+        if (!fs.existsSync(cacheDir)) {
+            fs.mkdirSync(cacheDir, { recursive: true });
         }
-        fs.writeFileSync(path.join(__dirname, "files/cache/cache.json"), json);
+        fs.writeFileSync(path.join(cacheDir, "cache.json"), json);
         console.info(`${appName}: Successfully cached IPs`);
     } catch (error) {
-        console.error(`${appName}: ERROR - An error occurred while caching IPs :`);
+        console.error(`${appName}: ERROR - Failed to cache IPs:`);
         console.error(error);
     }
 }
@@ -124,44 +127,39 @@ function cacheIPs(IPs) {
  * 读取缓存
  * @returns {Array|null} 缓存的IP列表 
  */
-function readCache() {
+export function readCache() {
     try {
-        if (fs.existsSync(path.join(__dirname, "files/cache/cache.json"))) {
-            let data = fs.readFileSync(path.join(__dirname, "files/cache/cache.json"));
-            let cache = JSON.parse(data);
-            let now = Date.now();
-            if (now - cache.time < 60 * 60 * 3) {
-                let flag = true;
-                for (let record of cache.IPs) {
-                    if (!(typeof record.host === "string" && typeof record.ip === "string")) {
-                        flag = false;
-                        break;
-                    }
-                }
-                if (flag) {
-                    return cache.IPs;
-                } else {
-                    console.info(`${appName}: cache file corrupted, ignore it`);
-                    return null;
-                }
+        const cachePath = path.join(__dirname, "files/cache/cache.json");
+        if (fs.existsSync(cachePath)) {
+            const data = fs.readFileSync(cachePath);
+            const cache = JSON.parse(data);
+            const now = Date.now();
+
+            if (now - cache.time < 60 * 60 * 3 * 1000) {
+                const isValid = cache.IPs.every((record) => typeof record.host === "string" && typeof record.ip === "string");
+                return isValid ? cache.IPs : null;
             } else {
-                console.info(`${appName}: cache file expired, ignore it`);
+                console.info(`${appName}: Cache expired`);
                 return null;
             }
         } else {
-            console.info(`${appName}: cache file not exist, ignore it`);
+            console.info(`${appName}: Cache file not found`);
             return null;
         }
     } catch (error) {
-        console.error(`${appName}: ERROR - An error occurred while reading cache:`);
+        console.error(`${appName}: ERROR - Failed to read cache:`);
         console.error(error);
         return null;
     }
 }
 
-function checkIPv4(IP) {
+/**
+ * @function checkIPv4
+ * Validates IPv4 format.
+ * @param {string} IP - IP address.
+ * @returns {boolean} Whether the IP is valid.
+ */
+export function checkIPv4(IP) {
     const parts = IP.split(".");
-    return parts.length === 4 && parts.every(part => !isNaN(part) && Number(part) >= 0 && Number(part) <= 255);
+    return parts.length === 4 && parts.every((part) => !isNaN(part) && Number(part) >= 0 && Number(part) <= 255);
 }
-
-module.exports = { getIPs, readCache };
