@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import path from "path";
+import http from "http";
 import https from "https";
 import { fileURLToPath } from "url";
 
@@ -38,9 +39,10 @@ const sites = [
  * @param {string} url - The URL to fetch.
  * @returns {Promise<Object>} - The JSON response.
  */
-function httpsGet(url) {
+function httpGet(url) {
     return new Promise((resolve, reject) => {
-        https.get(url, (res) => {
+        const lib = url.startsWith("https") ? https : http;
+        lib.get(url, (res) => {
             let data = "";
 
             res.on("data", (chunk) => {
@@ -67,10 +69,10 @@ function httpsGet(url) {
  * @returns {Promise<string>} - 返回网站的 IP 地址
  */
 export async function getIP(host) {
-    const url = `https://ip-api.com/json/${host}?fields=status,message,query`;
+    const url = `http://ip-api.com/json/${host}?fields=status,message,query`; // Use HTTP for free API
     console.log(`${appName}: Getting IP for '${host}' ( ${url} )`);
     try {
-        const data = await httpsGet(url);
+        const data = await httpGet(url);
         if (data.status === "success") {
             const ip = data.query;
             console.log(`${appName}: Got IP for '${host}' : ${ip}`);
