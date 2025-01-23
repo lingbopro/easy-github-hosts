@@ -37,6 +37,8 @@ set /p choice=Enter your choice:
 if %choice%==1 goto update
 if %choice%==2 goto restore
 if %choice%==3 goto exit
+echo Invalid choice. Please try again.
+goto Select
 :update
 node main.js update
 goto exit
