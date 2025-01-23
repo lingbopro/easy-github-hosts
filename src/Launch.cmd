@@ -33,10 +33,12 @@ echo 1. Update GitHub Hosts
 echo 2. Restore Original Hosts
 echo 3. Exit
 echo.
-set /p choice=Enter your choice:
+set /p choice=Enter your choice (1-3): 
 if %choice%==1 goto update
 if %choice%==2 goto restore
 if %choice%==3 goto exit
+echo Invalid choice. Please try again.
+goto Select
 :update
 node main.js update
 goto exit
