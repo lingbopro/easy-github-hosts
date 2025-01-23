@@ -12,7 +12,7 @@ function main() {
     let argv = process.argv.slice(2);
 
     // Filter out Node.js specific flags 必须搞回来 >:)
-    argv = argv.filter(arg => !arg.startsWith('--inspect') && !arg.startsWith('--inspect-brk'));
+    // argv = argv.filter(arg => !arg.startsWith('--inspect') && !arg.startsWith('--inspect-brk'));
 
     // 如果没有提供任何参数，输出错误信息和使用说明
     if (argv.length === 0) {

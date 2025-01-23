@@ -17,9 +17,9 @@ const diff = noedit && process.argv.includes("--diff");
 const nocache = process.argv.includes("--nocache");
 
 /**
- * Parses a HOSTS record.
- * @param {string} record - A single record from the HOSTS file.
- * @returns {object} - Parsed data.
+ * 解析一条 HOSTS 记录
+ * @param {string} record - 一条记录
+ * @returns {object} - 解析后的数据（不带行号）.
  */
 function parseHostsRecord(record) {
     if (debug) {
