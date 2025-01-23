@@ -31,7 +31,7 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
 
 #### Windows
 
-<!-- 此部分内容为小白向，大佬只用看第一个 (咋们不需要写这个) -->
+<!-- 此部分内容为小白向，大佬只用看第一个 (咱们不需要写这个) -->
 
 1. 在克隆的文件夹双击运行 `Launch.cmd`。
 
@@ -67,6 +67,8 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
 
 ### 5. 完事
 
+<!--- 恢复也在脚本里，删了删了
+
 #### 什么？你想改回你的Hosts文件？
 
 ~~hahaha，你别想改回去了~~
@@ -82,6 +84,8 @@ git clone https://github.com/lingbopro/easy-github-hosts.git
     ```
 
 2. **完成**：程序将在原始`hosts`文件恢复完成后通知您。
+
+--->
 
 <!--## 选项
 
